@@ -10,6 +10,9 @@
 	)
 )
 
+; overwriteExistingRow is a boolean flag that tells the program whether you want to overwrite the row having the target revision number, if such a row exists.
+(setq overwriteExistingRow t)
+
 
 
 
@@ -53,54 +56,29 @@
 								(progn
 									(setq theTitleBlock entity)
 									;; find first empty attribute value having tag of the form Rn, where n is a number
-									(setq rNumberOfRevision3 nil)
 									(setq rNumberOfTargetRevisionValue nil)
 									(setq targetRevisionValue (cdr (assoc "" newRevisionFields)))
 									(setq rNumber 1)
-									(while (and (/= (getAttributeValue theTitleBlock (strcat "R" (itoa rNumber)) ) "") (<= rNumber 12) )
-										(if (= (vl-string-trim " \t\n" (getAttributeValue theTitleBlock (strcat "R" (itoa rNumber)) )) "3")
-											(progn 
-												(setq rNumberOfRevision3 rNumber)
-											)
-										)
+									(while (and (/= (vl-string-trim " \t\n" (getAttributeValue theTitleBlock (strcat "R" (itoa rNumber)) )) "") (<= rNumber 12) )
 										(if (= (vl-string-trim " \t\n" (getAttributeValue theTitleBlock (strcat "R" (itoa rNumber)) )) (vl-string-trim " \t\n" targetRevisionValue))
 											(progn 
 												(setq rNumberOfTargetRevisionValue rNumber)
 											)
 										)
-										(setq rNumber (+ rNumber 1))
+										(setq rNumber (1+ rNumber))
 									)
 									(setq firstEmptyRevisionRowNumber rNumber)
 									(setq lastNonEmptyRevisionRowNumber (- rNumber 1))	
 									(princ "firstEmptyRevisionRowNumber: ")(princ firstEmptyRevisionRowNumber)(princ "\n")
 									(princ "lastNonEmptyRevisionRowNumber: ")(princ lastNonEmptyRevisionRowNumber)(princ "\n")
-									(princ "rNumberOfRevision3: ")(princ rNumberOfRevision3)(princ "\n")
 									(princ "rNumberOfTargetRevisionValue: ")(princ rNumberOfTargetRevisionValue)(princ "\n")
-									
-									
-									(if nil ;;set the fields in the last nonempty row of the revision table to emtpy strings.
-										(progn 
-											(if rNumberOfRevision3
-												(progn
-													;;we are setting the row containing revision 3 stuff to have all empty strings as values.
-													(mapcar
-														'(lambda (x) (setAttributeValue  theTitleBlock  x ""))
-														(mapcar 
-															'(lambda (x) (strcat "R" (itoa rNumberOfRevision3) x))
-															(list "" "DATE" "BY" "DESCRIPTION" "APV")
-														)
-													)
-												)
-											)	
-										)
-									)
-									
-									
+
 									(if T ;; add the new revision values
 										(progn 
-											( if rNumberOfTargetRevisionValue ;;if there was  already a row for the revision we wanted to add
+											( if (and rNumberOfTargetRevisionValue (not overwriteExistingRow)) ;;if there was  already a row for the revision we wanted to add
 												(progn
-													(princ "Row ")(princ rNumberOfTargetRevisionValue)(princ " of the revision table already contains the revision number that you want to add, so we will not make any changes. Call Neil for help.  Good bye.")(princ "\n")												)
+													(princ "Row ")(princ rNumberOfTargetRevisionValue)(princ " of the revision table already contains the revision number that you want to add, so we will not make any changes. Call Neil for help.  Good bye.")(princ "\n")												
+												)
 												(progn
 													(princ "now adding your new revision table to the first empty row of the revision table")(princ "\n")
 													(foreach nameValuePair newRevisionFields
