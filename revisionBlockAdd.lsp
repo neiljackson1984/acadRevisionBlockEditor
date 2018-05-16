@@ -4,7 +4,7 @@
 	(list 
 		(cons     ""                     "3"                                       )  ;;this is the revision number
 		(cons     "DATE"                 "01/04/2018"                              )
-		(cons     "BY"                   "JESUS CHRIST"                            )
+		(cons     "BY"                   "JFC"                                     )
 		(cons     "DESCRIPTION"          "MADE SOME MINOR CHANGES"                 )
 		(cons     "APV"                  "GOD THE FATHER"                          )
 	)
@@ -73,20 +73,46 @@
 									(princ "lastNonEmptyRevisionRowNumber: ")(princ lastNonEmptyRevisionRowNumber)(princ "\n")
 									(princ "rNumberOfTargetRevisionValue: ")(princ rNumberOfTargetRevisionValue)(princ "\n")
 
-									(if T ;; add the new revision values
-										(progn 
-											( if (and rNumberOfTargetRevisionValue (not overwriteExistingRow)) ;;if there was  already a row for the revision we wanted to add
-												(progn
-													(princ "Row ")(princ rNumberOfTargetRevisionValue)(princ " of the revision table already contains the revision number that you want to add, so we will not make any changes. Call Neil for help.  Good bye.")(princ "\n")												
-												)
-												(progn
-													(princ "now adding your new revision table to the first empty row of the revision table")(princ "\n")
-													(foreach nameValuePair newRevisionFields
-														(setAttributeValue  theTitleBlock  
-															(strcat "R" (itoa firstEmptyRevisionRowNumber) (car nameValuePair))
-															(cdr nameValuePair)
-														)
+									; decide which row to edit, if any.
+									(setq rNumberOfRowToBeModified 
+										(cond
+											(
+												rNumberOfTargetRevisionValue
+												; in this case, there is an existing row having the target revision number.
+												(if overwriteExistingRow 
+													(progn
+														rNumberOfTargetRevisionValue 
 													)
+													(progn 
+														(princ "Row ")(princ rNumberOfTargetRevisionValue)(princ " of the revision table already contains the revision number that you want to add, so we will not make any changes. Call Neil for help.  Goodbye.")(princ "\n")												
+														nil
+													)
+												)
+											)
+											(
+												(not rNumberOfTargetRevisionValue)
+												; in this case there is no row that has the target revision number
+												(if (<= firstEmptyRevisionRowNumber 12)
+													(progn
+														firstEmptyRevisionRowNumber
+													)
+													(progn
+														(princ "No empty row could be found, so we will not make any changes. Call Neil for help.  Goodbye.")(princ "\n")												
+														nil
+													)
+												)
+											
+											)
+											(t nil)
+										)
+									)							
+									(if rNumberOfRowToBeModified
+										(progn
+											(princ "now adding your new data to row ")(princ rNumberOfRowToBeModified) (princ " of the revision table")(princ "\n")
+											(foreach nameValuePair newRevisionFields
+												(setAttributeValue  theTitleBlock  
+													(strcat "R" (itoa rNumberOfRowToBeModified) (car nameValuePair))
+													(cdr nameValuePair)
 												)
 											)
 										)
